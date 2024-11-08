@@ -1,0 +1,33 @@
+<%- include('../Includes/begin.ejs') %>
+<%- include('../Includes/student_nav.ejs') %>
+<section id="content-wrapper">
+  <div class="container pt-5 mt-5">
+    <h1>Upcoming Exams</h1>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Course Name</th>
+          <th>Exam Date</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (examsData.length > 0) { %>
+          <% examsData.forEach(exam => { %>
+            <tr>
+              <td><%= exam.course_name %> (<%= exam.c_id %>)</td>
+              <td><%= new Date(exam.exam_date).toLocaleDateString() %></td>
+              <td><%= exam.start_time %></td>
+              <td><%= exam.end_time %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="4">No upcoming exams.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<%- include('../Includes/end.ejs') %>

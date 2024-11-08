@@ -1,0 +1,48 @@
+<%- include('../Includes/begin.ejs') %>
+<%- include('../Includes/navbar.ejs') %>
+
+<div class="container pt-5">
+    <div class="container pt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="card shadow p-3 mb-5 bg-white rounded">
+                    <div class="feedback p-3">
+                        <h2>Submit Your Feedback</h2>
+                        <p>We value your feedback to improve our courses. Please take a moment to share your thoughts and rate your experience.</p>
+                        <ol class="list-unstyled">
+                            <li><span class="text-primary text-medium">1. </span>Fill in your student and course details.</li>
+                            <li><span class="text-primary text-medium">2. </span>Write your feedback in the provided field.</li>
+                            <li><span class="text-primary text-medium">3. </span>Rate the course from 1 to 5.</li>
+                        </ol>
+                    </div>
+                    <%- include('../Includes/messages') %>
+                    <form class="card" role="form" method="POST" action="/student/feedback">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input class="form-control" type="email" name="st_id" id="email" value="<%= typeof email !== 'undefined' ? email : '' %>" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="course_id">Department ID</label>
+                                <input class="form-control" type="text" name="course_id" id="course_id" value="<%= typeof department !== 'undefined' ? department : '' %>" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="feedback_text">Feedback</label>
+                                <textarea class="form-control" name="feedback_text" id="feedback_text" rows="4" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="rating">Rating (1-5)</label>
+                                <input class="form-control" type="number" name="rating" id="rating" min="1" max="5" required>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary btn-block" type="submit">Submit Feedback</button>
+                    </form>
+                    <hr>
+                    <button class="btn btn-danger" onclick="location.href = '/student/dashboard'">Back to Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../Includes/end.ejs') %>

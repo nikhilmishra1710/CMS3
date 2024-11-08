@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Marks - Exam ID: <%= exam[0].exam_id %></title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+      }
+      h2 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      form {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background-color: #34495e;
+        color: #fff;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        background-color: #2980b9;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .bar button {
+        width: auto;
+        padding: 10px;
+        background-color: #2980b9;
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #1f6391;
+      }
+
+      .bar {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: -20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Update Marks for Exam: <%= exam[0].exam_id %></h2>
+    <div class="bar">
+        <button onclick="window.location.href='/staff/exams'">
+            Back to Exams
+        </button>
+        <button onclick="window.print()">Print</button>
+    </div>
+    <br /><br />
+    <form id="updateMarksForm">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Obtained Marks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% students.forEach(student => { %>
+          <tr>
+            <td><%= student.s_name %></td>
+            <td>
+              <input
+                type="number"
+                name="marks"
+                data-id="<%= student.s_id %>"
+                value="<%= student.obtained_marks || '' %>"
+                placeholder="Enter marks"
+              />
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <button type="submit">Update Marks</button>
+    </form>
+
+    <script>
+      document
+        .getElementById("updateMarksForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const studentMarks = [];
+          const inputs = document.querySelectorAll('input[name="marks"]');
+
+          inputs.forEach((input) => {
+            const s_id = input.getAttribute("data-id");
+            const marks = parseFloat(input.value);
+            if (!isNaN(marks)) {
+              studentMarks.push({ s_id, marks });
+            }
+          });
+          console.log(studentMarks);
+
+          // Ask for confirmation
+          const confirmed = confirm(
+            "Are you sure you want to update the marks?"
+          );
+          if (!confirmed) return; // Exit if the user cancels
+
+          try {
+            alert(`staff/exams/<%= exam[0].exam_id %>/marks`);
+            const response = await fetch(
+              `/staff/exams/<%= exam[0].exam_id %>/marks`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ studentMarks }),
+              }
+            );
+
+            if (response.ok) {
+              alert("Marks updated successfully");
+              window.location.reload();
+            } else {
+              const error = await response.json();
+              alert(`Error: ${error.message}`);
+            }
+          } catch (error) {
+            alert("An error occurred while updating marks. Please try again.");
+            console.error("Error:", error);
+          }
+        });
+    </script>
+  </body>
+</html>

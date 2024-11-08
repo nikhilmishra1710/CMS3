@@ -1,0 +1,40 @@
+<%- include('../Includes/begin.ejs') %>
+<%- include('../Includes/navbar.ejs') %>
+
+<div class="container pt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow p-3 mb-5 bg-white rounded">
+                <div class="feedback p-3">
+                    <h2>Marks for <%= studentData.s_name %></h2>
+                    <p>Below are the marks obtained by the student in each course.</p>
+                </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Exam ID</th>
+                            <th>Course ID</th>
+                            <th>Course Name</th>
+                            <th>Marks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% marksData.forEach(mark => { %>
+                            <tr>
+                                <td><%= mark.exam_id %></td>
+                                <td><%= mark.c_id %></td>
+                                <td><%= mark.course_name %></td>
+                                <td><%= mark.obtained_marks %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                <hr>
+                <button class="btn btn-danger" onclick="location.href = '/student/dashboard'">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+</div>
+    
+
+    <%- include('../Includes/end.ejs') %>

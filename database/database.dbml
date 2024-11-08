@@ -1,0 +1,134 @@
+Table "admin" {
+  "admin_id" VARCHAR(36) [pk, not null]
+  "name" VARCHAR(255) [not null]
+  "email" VARCHAR(255) [unique, not null]
+  "password" VARCHAR(255) [not null]
+}
+
+Table "course" {
+  "c_id" VARCHAR(100) [unique, pk, not null]
+  "semester" INT [not null]
+  "name" VARCHAR(255) [not null]
+  "c_type" VARCHAR(255) [not null]
+  "credits" INT [not null]
+  "dept_id" VARCHAR(255) [not null]
+}
+
+Table "student" {
+  "s_id" VARCHAR(36) [pk, not null]
+  "s_name" VARCHAR(255) [not null]
+  "gender" VARCHAR(6) [not null]
+  "dob" DATE [not null]
+  "email" VARCHAR(255) [unique, not null]
+  "s_address" VARCHAR(255) [not null]
+  "contact" VARCHAR(12) [not null]
+  "password" VARCHAR(255) [not null]
+  "section" INT [not null]
+  "joining_date" DATE [default: `CURRENT_DATE`]
+  "dept_id" VARCHAR(255)
+}
+
+Table "staff" {
+  "st_id" VARCHAR(36) [pk, not null]
+  "st_name" VARCHAR(255) [not null]
+  "gender" VARCHAR(6) [not null]
+  "dob" DATE [not null]
+  "email" VARCHAR(255) [unique, not null]
+  "st_address" VARCHAR(255) [not null]
+  "contact" VARCHAR(12) [not null]
+  "dept_id" VARCHAR(255) [not null]
+  "password" VARCHAR(255) [not null]
+}
+
+Table "department" {
+  "dept_id" VARCHAR(255) [unique, pk, not null]
+  "d_name" VARCHAR(255) [unique, not null]
+}
+
+Table "class" {
+  "class_id" INT [unique, pk, not null, increment]
+  "section" INT [not null]
+  "semester" INT [not null]
+  "year" DATE [default: `CURRENT_DATE`]
+  "c_id" VARCHAR(100)
+  "st_id" VARCHAR(36) [not null]
+}
+
+Table "attendance" {
+  "s_id" VARCHAR(36) [not null]
+  "date" DATE [not null]
+  "c_id" VARCHAR(100) [not null]
+  "status" BOOLEAN [default: NULL]
+
+  Indexes {
+    (s_id, c_id, date) [pk]
+  }
+}
+
+Table "time_table" {
+  "c_id" VARCHAR(100)
+  "st_id" VARCHAR(36) [not null]
+  "section" INT [not null]
+  "day" INT [not null]
+  "start_time" TIME [not null]
+  "end_time" TIME [not null]
+
+  Indexes {
+    (c_id, section, day) [pk]
+  }
+}
+
+Table "feedback_form" {
+  "feedback_id" VARCHAR(100) [pk, not null]
+  "st_id" VARCHAR(36) [not null]
+  "course_id" VARCHAR(100) [not null]
+  "feedback_text" TEXT [not null]
+  "rating" INT
+  "submitted_at" TIMESTAMP [default: `CURRENT_TIMESTAMP`]
+}
+
+Table "exams" {
+  "exam_id" INT [pk, increment]
+  "c_id" VARCHAR(100) [not null]
+  "st_id" VARCHAR(100) [not null]
+  "date" DATE [not null]
+  "start_time" TIME [not null]
+  "end_time" TIME [not null]
+}
+
+Table "marks" {
+  "mark_id" INT [pk, not null, increment]
+  "s_id" VARCHAR(36) [not null]
+  "c_id" VARCHAR(100) [not null]
+  "exam_id" INT [not null]
+  "total_marks" INT [not null]
+  "obtained_marks" INT [not null]
+}
+
+Ref:"course"."c_id" < "exams"."c_id"
+
+Ref:"staff"."st_id" < "exams"."st_id"
+
+Ref:"student"."s_id" < "marks"."s_id" [update: cascade, delete: restrict]
+
+Ref:"course"."c_id" < "marks"."c_id" [update: cascade, delete: restrict]
+
+Ref:"exams"."exam_id" < "marks"."exam_id" [update: cascade, delete: restrict]
+
+Ref "course_fk0":"department"."dept_id" < "course"."dept_id" [update: cascade, delete: restrict]
+
+Ref "student_fk0":"department"."dept_id" < "student"."dept_id" [update: cascade, delete: restrict]
+
+Ref "staff_fk0":"department"."dept_id" < "staff"."dept_id" [update: cascade, delete: restrict]
+
+Ref "attendance_fk0":"student"."s_id" < "attendance"."s_id" [update: cascade, delete: restrict]
+
+Ref "attendance_fk1":"course"."c_id" < "attendance"."c_id" [update: cascade, delete: restrict]
+
+Ref "class_fk0":"course"."c_id" < "class"."c_id" [update: cascade, delete: restrict]
+
+Ref "class_fk1":"staff"."st_id" < "class"."st_id" [update: cascade, delete: restrict]
+
+Ref "time_table_fk0":"course"."c_id" < "time_table"."c_id" [update: cascade, delete: restrict]
+
+Ref "time_table_fk1":"staff"."st_id" < "time_table"."st_id" [update: cascade, delete: restrict]
