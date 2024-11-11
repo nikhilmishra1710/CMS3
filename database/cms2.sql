@@ -107,11 +107,11 @@ CREATE TABLE exams (
 
 CREATE TABLE IF NOT EXISTS `marks` (
     `mark_id` INT NOT NULL AUTO_INCREMENT,
-    `s_id` VARCHAR(36) NOT NULL,            -- Reference to student
-    `c_id` VARCHAR(100) NOT NULL,           -- Reference to course
-    `exam_id` INT NOT NULL,            -- Reference to test type
-    `total_marks` INT NOT NULL,             -- Total possible marks
-    `obtained_marks` INT NOT NULL,          -- Marks obtained by the student
+    `s_id` VARCHAR(36) NOT NULL,            
+    `c_id` VARCHAR(100) NOT NULL,          
+    `exam_id` INT NOT NULL,           
+    `total_marks` INT NOT NULL,            
+    `obtained_marks` INT NOT NULL,          
     PRIMARY KEY (`mark_id`),
     FOREIGN KEY (`s_id`) REFERENCES `student`(`s_id`) ON UPDATE CASCADE ON DELETE RESTRICT,
     FOREIGN KEY (`c_id`) REFERENCES `course`(`c_id`) ON UPDATE CASCADE ON DELETE RESTRICT,

@@ -28,18 +28,19 @@ router.get("/student-report", requireAuth, controller.getStudentReport);
 router.get("/class-report", requireAuth, controller.selectClassReport);
 router.get("/class-report/class/:id", requireAuth, controller.getClassReport);
 
-// New route for marks
 router.get("/marks/class/:id", requireAuth, controller.getClassMarks);
 router.post("/marks/class/:id", requireAuth, controller.postClassMarks);
 
 router.get('/add-exam', requireAuth, controller.getAddExam);
 
-// Route to handle the form submission for creating an exam
 router.post('/add-exam', requireAuth, controller.postAddExam);
 
 router.get('/exams', requireAuth, controller.getExams);
 
 router.get('/exams/:examId/update',requireAuth, controller.getUpdateExam);
 router.post('/exams/:examId/marks', requireAuth, controller.putUpdateExam);
+
+router.get("/attendance-report/:courseId/:year/:month",requireAuth, controller.getMonthlyAttendanceReport);
+
 
 module.exports = router;

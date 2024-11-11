@@ -12,7 +12,6 @@ const db = mysql.createConnection({
   database: 'cumsdbms',
 });
 
-
 const zeroParamPromise = (sql) => {
   return new Promise((resolve, reject) => {
     db.query(sql, (err, results) => {
@@ -370,7 +369,6 @@ exports.getUpcomingExams = async (req, res, next) => {
       return res.status(404).send('Student not found');
     }
 
-    // Calculate the current semester based on the joining date
     const days = (
       await queryParamPromise(
         'SELECT DATEDIFF(CURRENT_DATE(), ?) AS diff',
@@ -380,7 +378,6 @@ exports.getUpcomingExams = async (req, res, next) => {
 
     const semester = Math.floor(days / 182) + 1;
 
-    // Fetch upcoming exams
     const sqlExams = `
       SELECT e.exam_id, c.name AS course_name, c.c_id, e.date as exam_date, e.start_time, e.end_time
       FROM exams AS e
@@ -391,7 +388,6 @@ exports.getUpcomingExams = async (req, res, next) => {
     
     const examsData = await queryParamPromise(sqlExams, [semester]);
 
-    // Render the upcoming exams view
     res.render('Student/upcomingExams', {
       studentData,
       examsData,

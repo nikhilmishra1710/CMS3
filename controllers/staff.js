@@ -1,6 +1,8 @@
 const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -249,7 +251,6 @@ exports.getClassMarks = async (req, res, next) => {
   const courseId = req.params.id;
   const staffId = req.user;
 
-  // Fetch class information and student marks for this course
   const classData = await queryParamPromise(
     "SELECT * FROM class WHERE c_id = ? AND st_id = ?",
     [courseId, staffId]
@@ -259,7 +260,6 @@ exports.getClassMarks = async (req, res, next) => {
     [courseId]
   );
 
-  // Fetch staff details
   const staffData = await queryParamPromise(
     "SELECT * FROM staff WHERE st_id = ?",
     [staffId]
@@ -275,7 +275,7 @@ exports.getClassMarks = async (req, res, next) => {
 
 exports.postClassMarks = async (req, res, next) => {
   const courseId = req.params.id;
-  const { marks } = req.body; // Assumes marks are submitted as an object { s_id: mark }
+  const { marks } = req.body;
   console.log(marks, courseId);
   for (const s_id in marks) {
     const mark = marks[s_id];
@@ -294,7 +294,6 @@ exports.getAddExam = async (req, res, next) => {
   const sql1 = "SELECT * FROM staff WHERE st_id = ?";
   const data = await queryParamPromise(sql1, [user]);
   console.log(user);
-  // Get subjects/classes assigned to the staff member
   const sql2 = `
     SELECT cl.class_id, cl.section, cl.semester, cl.c_id, co.name
     FROM class AS cl
@@ -314,7 +313,6 @@ exports.postAddExam = async (req, res, next) => {
   const { subject, date, startTime, endTime } = req.body;
   const staffId = req.user;
 
-  // SQL query to insert exam into the database
   const sql = `
     INSERT INTO exams (c_id, st_id, date, start_time, end_time)
     VALUES (?, ?, ?, ?, ?)
@@ -333,7 +331,6 @@ exports.postAddExam = async (req, res, next) => {
 exports.getExams = async (req, res, next) => {
   const staffId = req.user;
 
-  // SQL query to fetch exams created by the staff member
   const sql = `
     SELECT ex.exam_id, co.name AS course_name, ex.date, ex.start_time, ex.end_time, cl.section, cl.semester
     FROM exams AS ex
@@ -359,11 +356,9 @@ exports.getUpdateExam = async (req, res, next) => {
   const { examId } = req.params;
 
   try {
-    // Fetch the exam details
     const examQuery = "SELECT * FROM exams WHERE exam_id = ?";
     const exams = await queryParamPromise(examQuery, [examId]);
 
-    // Fetch students enrolled in the course for the exam
     const studentsQuery = `
             SELECT s.s_id, s.s_name, m.obtained_marks
             FROM student s
@@ -375,9 +370,11 @@ exports.getUpdateExam = async (req, res, next) => {
       exams[0].c_id,
     ]);
 
-    // Render the EJS view
-    // console.log(exams, students);
-    res.render("Staff/update_marks", { exam: exams, students, page_name: "exams" });
+    res.render("Staff/update_marks", {
+      exam: exams,
+      students,
+      page_name: "exams",
+    });
   } catch (error) {
     console.error("Error fetching exam or students:", error);
     res.status(500).send("Internal Server Error");
@@ -389,7 +386,6 @@ exports.putUpdateExam = async (req, res, next) => {
   const { examId } = req.params;
   const { studentMarks } = req.body;
   console.log(examId, studentMarks);
-  // Validate input
   if (!Array.isArray(studentMarks) || studentMarks.length === 0) {
     return res.status(400).json({
       error: "Invalid input: studentMarks should be a non-empty array",
@@ -402,11 +398,14 @@ exports.putUpdateExam = async (req, res, next) => {
       const checkSql = "SELECT * FROM marks WHERE exam_id = ? AND s_id = ?";
       const ans = await queryParamPromise(checkSql, [examId, s_id]);
       if (ans.length === 0) {
-        const data = await queryParamPromise("SELECT c_id FROM exams WHERE exam_id = ?", [examId]);
+        const data = await queryParamPromise(
+          "SELECT c_id FROM exams WHERE exam_id = ?",
+          [examId]
+        );
         console.log(data);
         const sql =
           "INSERT INTO marks (exam_id,c_id, s_id, total_marks, obtained_marks) VALUES (?, ?, ?, ?, ?)";
-        return queryParamPromise(sql, [examId,data[0].c_id, s_id, 100, marks]);
+        return queryParamPromise(sql, [examId, data[0].c_id, s_id, 100, marks]);
       } else {
         const sql =
           "UPDATE marks SET obtained_marks = ? WHERE exam_id = ? AND s_id = ?";
@@ -421,6 +420,116 @@ exports.putUpdateExam = async (req, res, next) => {
     console.error("Error updating marks:", error);
     res.status(500).json({ error: "An error occurred while updating marks" });
   }
+};
+
+exports.getMonthlyAttendanceReport = async (req, res, next) => {
+  const { courseId, year, month } = req.params;
+  const staffId = req.user;
+  console.log(courseId, year, month);
+  const attendanceData = await queryParamPromise(
+    `
+    SELECT s.s_id, s.s_name, a.date, a.status
+    FROM student AS s
+    JOIN attendance AS a ON s.s_id = a.s_id
+    WHERE a.c_id = ? AND YEAR(a.date) = ? AND MONTH(a.date) = ?
+    ORDER BY s.s_id, a.date
+    `,
+    [courseId, year, month]
+  );
+  console.log(courseId, year, month, attendanceData);
+
+  const groupedData = {};
+  attendanceData.forEach((record) => {
+    let { s_id, s_name, date, status } = record;
+    if (!groupedData[s_id]) {
+      groupedData[s_id] = { s_name, attendance: {} };
+    }
+    date = new Date(date);
+    groupedData[s_id].attendance[date.toISOString().split("T")[0]] = status;
+  });
+  console.log(courseId, year, month, groupedData);
+  const doc = new PDFDocument();
+  const fileName = `Monthly_Attendance_Report_${courseId}_${year}_${month}.pdf`;
+  const filePath = `./reports/${fileName}`;
+
+  const fileStream = fs.createWriteStream(filePath);
+  doc.pipe(fileStream);
+
+  doc
+    .fontSize(16)
+    .text(`Monthly Attendance Report for Course ID: ${courseId}`, {
+      align: "center",
+    });
+  doc.fontSize(12).text(`Month: ${year}-${month}`, { align: "center" });
+  doc.moveDown();
+  console.log(courseId, year, month);
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const headers = [
+    "Student ID",
+    "Student Name",
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+
+  headers.forEach((header, index) => {
+    doc.text(header, 50 + index * 50, 100, {
+      continued: index < headers.length - 1,
+    });
+  });
+  doc.moveDown();
+  console.log("@", courseId, year, month);
+
+  Object.keys(groupedData).forEach((s_id, index) => {
+    const student = groupedData[s_id];
+    doc.text(index + 1, 50, 120 + index * 20);
+    doc.text(student.s_name, 100, 120 + index * 20);
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${year}-${String(month).padStart(2, "0")}-${String(
+        day
+      ).padStart(2, "0")}`;
+      const status =
+        student.attendance[date] !== undefined
+          ? student.attendance[date] === 1
+            ? "P"
+            : "A"
+          : "-";
+      doc.text(status, 150 + (day - 1) * 50, 120 + index * 20, {
+        continued: day < daysInMonth,
+      });
+    }
+  });
+
+  doc.end();
+  console.log("doc.end() called, PDF creation should be finalizing.");
+
+  fileStream.on("finish", () => {
+    console.log("File has been written to disk successfully.");
+
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        console.error("Error checking file stats:", err);
+        return res.status(500).send("Error accessing report file.");
+      }
+
+      if (stats.size > 0) {
+        console.log(
+          `File size is ${stats.size} bytes. Proceeding with download.`
+        );
+        res.download(filePath, fileName, (err) => {
+          if (err) {
+            console.error("Error downloading file:", err);
+            return res.status(500).send("Error downloading report.");
+          } else {
+            console.log("File downloaded successfully.");
+          }
+        });
+      } else {
+        console.error("File is empty, cannot download.");
+        return res.status(500).send("Error: The generated file is empty.");
+      }
+    });
+  });
 };
 
 exports.getLogout = (req, res, next) => {

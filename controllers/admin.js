@@ -13,9 +13,7 @@ const db = mysql.createConnection({
   database: 'cumsdbms',
 });
 
-
 const SECTION_LIMIT = 20;
-
 
 const zeroParamPromise = (sql) => {
   return new Promise((resolve, reject) => {
@@ -35,7 +33,6 @@ const queryParamPromise = (sql, queryParam) => {
   });
 };
 
-
 const hashing = (password) => {
   return new Promise((resolve, reject) => {
     bcrypt.hash(password, 8, function (err, hashedPassword) {
@@ -44,7 +41,6 @@ const hashing = (password) => {
     });
   });
 };
-
 
 exports.getLogin = (req, res, next) => {
   res.render('Admin/login');
@@ -73,7 +69,6 @@ exports.postLogin = async (req, res, next) => {
     res.redirect('/admin/dashboard');
   }
 };
-
 
 exports.getRegister = (req, res, next) => {
   res.render('Admin/register');
@@ -112,7 +107,6 @@ exports.getDashboard = async (req, res, next) => {
   res.render('Admin/dashboard', { user: user, page_name: 'overview' });
 };
 
-
 exports.getLogout = (req, res, next) => {
   res.cookie('jwt', '', { maxAge: 1 });
   req.flash('success_msg', 'You are logged out');
@@ -137,7 +131,6 @@ exports.getProfile = async (req, res, next) => {
     page_name: 'profile',
   });
 };
-
 
 exports.getInfoSettings = async (req, res, next) => {
   const sql = 'SELECT * FROM admin WHERE admin_id = ?';
@@ -317,13 +310,11 @@ exports.postRelevantStaff = async (req, res, next) => {
   }
 };
 
-
 exports.getAllStaff = async (req, res, next) => {
   const sql = 'SELECT * FROM staff';
   const results = await zeroParamPromise(sql);
   res.render('Admin/Staff/getStaff', { data: results, page_name: 'staff' });
 };
-
 
 exports.getStaffSettings = async (req, res, next) => {
   const staffEmail = req.params.id;
@@ -342,6 +333,7 @@ exports.getStaffSettings = async (req, res, next) => {
     page_name: 'Staff Settings',
   });
 };
+
 exports.postStaffSettings = async (req, res, next) => {
   const {
     old_email,
@@ -388,6 +380,7 @@ exports.getAddStudent = async (req, res, next) => {
     departments: departments,
   });
 };
+
 exports.postAddStudent = async (req, res, next) => {
   const {
     email,
@@ -446,8 +439,6 @@ exports.postAddStudent = async (req, res, next) => {
   res.redirect('/admin/getAllStudents');
 };
 
-
-
 exports.getRelevantStudent = async (req, res, next) => {
   const sql = 'SELECT * from department';
   const results = await zeroParamPromise(sql);
@@ -494,7 +485,6 @@ exports.postRelevantStudent = async (req, res, next) => {
   }
 };
 
-
 exports.getAllStudent = async (req, res, next) => {
   const sql = 'SELECT * from student';
   const results = await zeroParamPromise(sql);
@@ -503,7 +493,6 @@ exports.getAllStudent = async (req, res, next) => {
     page_name: 'students',
   });
 };
-
 
 exports.getStudentSettings = async (req, res, next) => {
   const studentEmail = req.params.id;
@@ -566,7 +555,6 @@ exports.postStudentSettings = async (req, res, next) => {
   req.flash('success_msg', 'Student updated successfully');
   res.redirect('/admin/getAllStudents');
 };
-
 
 exports.getClass = async (req, res, next) => {
   const sql = 'SELECT * FROM class';
@@ -633,7 +621,6 @@ exports.postAddClass = async (req, res, next) => {
   res.redirect('/admin/getClass');
 };
 
-
 exports.getClassSettings = async (req, res, next) => {
   const classId = req.params.id;
   const sql1 = 'SELECT * from class WHERE class_id = ?';
@@ -661,7 +648,6 @@ exports.postClassSettings = async (req, res, next) => {
   req.flash('success_msg', 'Class changed successfully!');
   res.redirect('/admin/getClass');
 };
-
 
 exports.getDept = async (req, res, next) => {
   const results = await zeroParamPromise('SELECT * FROM department');
@@ -710,7 +696,6 @@ exports.postDeptSettings = async (req, res, next) => {
   res.redirect('/admin/getDept');
 };
 
-
 exports.getAllCourse = async (req, res, next) => {
   const results = await zeroParamPromise('SELECT * FROM course');
   res.render('Admin/Course/getCourse', {
@@ -718,7 +703,6 @@ exports.getAllCourse = async (req, res, next) => {
     page_name: 'courses',
   });
 };
-
 
 exports.getRelevantCourse = async (req, res, next) => {
   const results = await zeroParamPromise('SELECT * from department');
@@ -765,7 +749,6 @@ exports.postRelevantCourse = async (req, res, next) => {
   }
 };
 
-
 exports.getAddCourse = async (req, res, next) => {
   const results = await zeroParamPromise('SELECT * from department');
   let departments = [];
@@ -777,6 +760,7 @@ exports.getAddCourse = async (req, res, next) => {
     page_name: 'courses',
   });
 };
+
 exports.postAddCourse = async (req, res, next) => {
   let { course, semester, department, credits, c_type } = req.body;
   const sql1 = 'SELECT COUNT(dept_id) AS size FROM course WHERE dept_id = ?';
@@ -795,7 +779,6 @@ exports.postAddCourse = async (req, res, next) => {
   req.flash('success_msg', 'Course added successfully');
   return res.redirect('/admin/getAllCourses');
 };
-
 
 exports.getCourseSettings = async (req, res, next) => {
   const cId = req.params.id;
